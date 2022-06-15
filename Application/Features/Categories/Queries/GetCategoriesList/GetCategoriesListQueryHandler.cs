@@ -1,26 +1,25 @@
-using Application.Contracts.Persistence;
+﻿using Application.Contracts.Persistence;
 using AutoMapper;
 using Domain.Entities;
 using MediatR;
 
-namespace Application.Features.Categories.Queries.GetCategoriesList;
-
-public record GetCategoriesListQuery : IRequest<List<CategoryListVm>>;
-public class GetCategoriesListQueryHandler: IRequestHandler<GetCategoriesListQuery, List<CategoryListVm>>
+namespace Application.Features.Categories.Queries.GetCategoriesList
 {
-    private readonly IAsyncRepository<Category> _categoryRepository;
-    private readonly IMapper _mapper;
-
-
-    public GetCategoriesListQueryHandler(IAsyncRepository<Category> categoryRepository, IMapper mapper)
+    public class GetCategoriesListQueryHandler : IRequestHandler<GetCategoriesListQuery, List<CategoryListVm>>
     {
-        _categoryRepository = categoryRepository;
-        _mapper = mapper;
-    }
+        private readonly IAsyncRepository<Category> _categoryRepository;
+        private readonly IMapper _mapper;
 
-    public async Task<List<CategoryListVm>> Handle(GetCategoriesListQuery request, CancellationToken cancellationToken)
-    {
-        var allCategories = (await _categoryRepository.ListAllAsync()).OrderBy(x => x.Name);
-        return _mapper.Map<List<CategoryListVm>>(allCategories);
+        public GetCategoriesListQueryHandler(IMapper mapper, IAsyncRepository<Category> categoryRepository)
+        {
+            _mapper = mapper;
+            _categoryRepository = categoryRepository;
+        }
+
+        public async Task<List<CategoryListVm>> Handle(GetCategoriesListQuery request, CancellationToken cancellationToken)
+        {
+            var allCategories = (await _categoryRepository.ListAllAsync()).OrderBy(x => x.Name);
+            return _mapper.Map<List<CategoryListVm>>(allCategories);
+        }
     }
 }

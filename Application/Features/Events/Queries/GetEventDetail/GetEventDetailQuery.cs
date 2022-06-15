@@ -1,8 +1,9 @@
-using MediatR;
+﻿using MediatR;
 
-namespace Application.Features.Events.Queries.GetEventDetail;
-
-public class GetEventDetailQuery:IRequest<EventDetailVm>
+namespace Application.Features.Events.Queries.GetEventDetail
 {
-    public Guid Id { get; set; }
+    public class GetEventDetailQuery: IRequest<EventDetailVm>
+    {
+        public Guid Id { get; set; }
+    }
 }

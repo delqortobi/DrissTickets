@@ -1,25 +1,34 @@
-using Application.Contracts.Persistence;
+﻿using Application.Contracts.Persistence;
+using Application.Exceptions;
 using AutoMapper;
+using Domain.Entities;
 using MediatR;
 
-namespace Application.Features.Events.Commands.DeleteEvent;
-
-public class DeleteEventCommandHandler:IRequestHandler<DeleteEventCommand>
+namespace Application.Features.Events.Commands.DeleteEvent
 {
-    private readonly IMapper _mapper;
-    private readonly IEventRepository _eventRepository;
-
-    public DeleteEventCommandHandler(IMapper mapper, IEventRepository eventRepository)
+    public class DeleteEventCommandHandler : IRequestHandler<DeleteEventCommand>
     {
-        _mapper = mapper;
-        _eventRepository = eventRepository;
-    }
-
-    public async Task<Unit> Handle(DeleteEventCommand request, CancellationToken cancellationToken)
-    {
-        var eventToDelete = await _eventRepository.GetByIdAsync(request.EventId);
-        await _eventRepository.DeleteAsync(eventToDelete);
+        private readonly IAsyncRepository<Event> _eventRepository;
+        private readonly IMapper _mapper;
         
-        return Unit.Value;
+        public DeleteEventCommandHandler(IMapper mapper, IAsyncRepository<Event> eventRepository)
+        {
+            _mapper = mapper;
+            _eventRepository = eventRepository;
+        }
+
+        public async Task<Unit> Handle(DeleteEventCommand request, CancellationToken cancellationToken)
+        {
+            var eventToDelete = await _eventRepository.GetByIdAsync(request.EventId);
+
+            if (eventToDelete == null)
+            {
+                throw new NotFoundException(nameof(Event), request.EventId);
+            }
+
+            await _eventRepository.DeleteAsync(eventToDelete);
+
+            return Unit.Value;
+        }
     }
 }

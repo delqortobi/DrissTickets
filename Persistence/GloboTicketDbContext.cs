@@ -1,20 +1,22 @@
+using Application.Contracts;
 using Domain.Common;
 using Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 
 namespace Persistence;
 
-public class GloboTicketDbContext: DbContext
+public class GloboTicketDbContext : DbContext
 {
-    public GloboTicketDbContext(DbContextOptions<GloboTicketDbContext> options):base(options)
-    {
-    }
-    
-    public DbSet<Event> Events { get; set; }
-    public DbSet<Category> Categories { get; set; }
-    public DbSet<Order> Orders { get; set; }
-    
-     protected override void OnModelCreating(ModelBuilder modelBuilder)
+    public GloboTicketDbContext(DbContextOptions<GloboTicketDbContext> options)
+           : base(options)
+        {
+        }
+
+        public DbSet<Event> Events { get; set; }
+        public DbSet<Category> Categories { get; set; }
+        public DbSet<Order> Orders { get; set; }
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.ApplyConfigurationsFromAssembly(typeof(GloboTicketDbContext).Assembly);
 
@@ -189,11 +191,9 @@ public class GloboTicketDbContext: DbContext
                 {
                     case EntityState.Added:
                         entry.Entity.CreatedDate = DateTime.Now;
-                        //entry.Entity.CreatedBy = _loggedInUserService.UserId;
                         break;
                     case EntityState.Modified:
                         entry.Entity.LastModifiedDate = DateTime.Now;
-                        //entry.Entity.LastModifiedBy = _loggedInUserService.UserId;
                         break;
                 }
             }

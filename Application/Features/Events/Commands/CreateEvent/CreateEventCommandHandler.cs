@@ -1,51 +1,55 @@
-using Application.Contracts.Infrastructure;
+﻿using Application.Contracts.Infrastructure;
 using Application.Contracts.Persistence;
 using Application.Models.Mail;
 using AutoMapper;
 using Domain.Entities;
-using FluentValidation;
 using MediatR;
+using Microsoft.Extensions.Logging;
 
-namespace Application.Features.Events.Commands.CreateEvent;
-
-public class CreateEventCommandHandler:IRequestHandler<CreateEventCommand, Guid>
+namespace Application.Features.Events.Commands.CreateEvent
 {
-    private readonly IMapper _mapper;
-    private readonly IEventRepository _eventRepository;
-    private readonly IEmailService _emailService;
-
-    public CreateEventCommandHandler(IMapper mapper, IEventRepository eventRepository, IEmailService emailService)
+    public class CreateEventCommandHandler : IRequestHandler<CreateEventCommand, Guid>
     {
-        _mapper = mapper;
-        _eventRepository = eventRepository;
-        _emailService = emailService;
-    }
+        private readonly IEventRepository _eventRepository;
+        private readonly IMapper _mapper;
+        private readonly IEmailService _emailService;
+        private readonly ILogger<CreateEventCommandHandler> _logger;
 
-    public async Task<Guid> Handle(CreateEventCommand request, CancellationToken cancellationToken)
-    {
-        var validator = new CreateEventCommandValidator();
-        var validationResult = await validator.ValidateAsync(request);
 
-        if (validationResult.Errors.Any())
-            throw new Exceptions.ValidationException(validationResult);
-        
-        var @event = _mapper.Map<Event>(request);
-
-        @event = await _eventRepository.AddAsync(@event);
-        
-        //Sending email notification to admin address
-        var email = new Email() { To = "drisstestcode@gmail.com", Body = $"A new event was created: {request}", Subject = "A new event was created" };
-
-        try
+        public CreateEventCommandHandler(IMapper mapper, IEventRepository eventRepository, IEmailService emailService, ILogger<CreateEventCommandHandler> logger)
         {
-            await _emailService.SendEmail(email);
-        }
-        catch (Exception ex)
-        {
-            //this shouldn't stop the API from doing else so this can be logged
-            //_logger.LogError($"Mailing about event {@event.EventId} failed due to an error with the mail service: {ex.Message}");
+            _mapper = mapper;
+            _eventRepository = eventRepository;
+            _emailService = emailService;
+            _logger = logger;
         }
 
-        return @event.EventId;
+        public async Task<Guid> Handle(CreateEventCommand request, CancellationToken cancellationToken)
+        {
+            var validator = new CreateEventCommandValidator(_eventRepository);
+            var validationResult = await validator.ValidateAsync(request);
+            
+            if (validationResult.Errors.Count > 0)
+                throw new Exceptions.ValidationException(validationResult);
+
+            var @event = _mapper.Map<Event>(request);
+
+            @event = await _eventRepository.AddAsync(@event);
+
+            //Sending email notification to admin address
+            var email = new Email() { To = "gill@snowball.be", Body = $"A new event was created: {request}", Subject = "A new event was created" };
+
+            try
+            {
+                await _emailService.SendEmail(email);
+            }
+            catch (Exception ex)
+            {
+                //this shouldn't stop the API from doing else so this can be logged
+                _logger.LogError($"Mailing about event {@event.EventId} failed due to an error with the mail service: {ex.Message}");
+            }
+
+            return @event.EventId;
+        }
     }
 }

@@ -1,33 +1,38 @@
-using Application.Contracts.Persistence;
+﻿using Application.Contracts.Persistence;
+using Application.Exceptions;
 using AutoMapper;
 using Domain.Entities;
 using MediatR;
 
-namespace Application.Features.Events.Queries.GetEventDetail;
-
-public class GetEventDetailQueryHandler:IRequestHandler<GetEventDetailQuery, EventDetailVm>
+namespace Application.Features.Events.Queries.GetEventDetail
 {
-    private readonly IAsyncRepository<Event> _eventRepository;
-    private readonly IAsyncRepository<Category> _categoryRepository;
-    private readonly IMapper _mapper;
-
-
-    public GetEventDetailQueryHandler(IAsyncRepository<Event> eventRepository, IAsyncRepository<Category> categoryRepository, IMapper mapper)
+    public class GetEventDetailQueryHandler : IRequestHandler<GetEventDetailQuery, EventDetailVm>
     {
-        _eventRepository = eventRepository;
-        _categoryRepository = categoryRepository;
-        _mapper = mapper;
-    }
+        private readonly IAsyncRepository<Event> _eventRepository;
+        private readonly IAsyncRepository<Category> _categoryRepository;
+        private readonly IMapper _mapper;
 
-    public async Task<EventDetailVm> Handle(GetEventDetailQuery request, CancellationToken cancellationToken)
-    {
-        var @event = await _eventRepository.GetByIdAsync(request.Id);
-        var eventDetailDto = _mapper.Map<EventDetailVm>(@event);
+        public GetEventDetailQueryHandler(IMapper mapper, IAsyncRepository<Event> eventRepository, IAsyncRepository<Category> categoryRepository)
+        {
+            _mapper = mapper;
+            _eventRepository = eventRepository;
+            _categoryRepository = categoryRepository;
+        }
 
-        var category = await _categoryRepository.GetByIdAsync(@event.CategoryId);
+        public async Task<EventDetailVm> Handle(GetEventDetailQuery request, CancellationToken cancellationToken)
+        {
+            var @event = await _eventRepository.GetByIdAsync(request.Id);
+            var eventDetailDto = _mapper.Map<EventDetailVm>(@event);
+            
+            var category = await _categoryRepository.GetByIdAsync(@event.CategoryId);
 
-        eventDetailDto.Category = _mapper.Map<CategoryDto>(category);
+            if (category == null)
+            {
+                throw new NotFoundException(nameof(Event), request.Id);
+            }
+            eventDetailDto.Category = _mapper.Map<CategoryDto>(category);
 
-        return eventDetailDto;
+            return eventDetailDto;
+        }
     }
 }
