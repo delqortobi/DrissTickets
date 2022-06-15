@@ -1,5 +1,4 @@
 using Application.Contracts.Persistence;
-using GloboTicket.TicketManagement.Persistence.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;

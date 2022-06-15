@@ -1,10 +1,8 @@
-﻿using Microsoft.EntityFrameworkCore;
-using Application.Contracts.Persistence;
+﻿using Application.Contracts.Persistence;
 using Domain.Entities;
-using Persistence;
-using Persistence.Repositories;
+using Microsoft.EntityFrameworkCore;
 
-namespace GloboTicket.TicketManagement.Persistence.Repositories
+namespace Persistence.Repositories
 {
     public class OrderRepository : BaseRepository<Order>, IOrderRepository
     {

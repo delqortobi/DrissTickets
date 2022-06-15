@@ -1,5 +1,4 @@
 using Api.Middleware;
-using GloboTicket.TicketManagement.Api.Middleware;
 
 namespace Api;
 
